@@ -1,0 +1,322 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="dark">
+<title>Shinri Trial — блокнот отыгрыша</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@500;700&family=Golos+Text:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#161618; --deep:#0e0e10; --cream:#ece3d2; --dim:#9a9285;
+  --line:rgba(236,227,210,.3); --lineS:rgba(236,227,210,.65); --red:#c4313c;
+  --serif:"Playfair Display","Times New Roman",serif;
+  --sans:"Golos Text","Segoe UI",Arial,sans-serif;
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{margin:0;background:var(--bg);color:var(--cream);font:400 16px/1.55 var(--sans);min-height:100vh}
+button,input,textarea,select{font:inherit;color:inherit}
+button{cursor:pointer}
+:focus-visible{outline:2px solid var(--cream);outline-offset:3px}
+.dim{color:var(--dim)}
+/* рамка как на постере: двойная линия и звезда в разрыве */
+.frame{position:relative;border:1px solid var(--line);margin:22px 18px;padding:34px}
+.frame::before{content:"";position:absolute;inset:6px;border:1px solid var(--line);pointer-events:none}
+.frame>.star{position:absolute;top:-14px;left:50%;transform:translateX(-50%);background:var(--bg);padding:0 10px;font-size:22px;line-height:1;z-index:1}
+.pill{display:inline-block;border:1px solid var(--lineS);border-radius:99px;padding:3px 15px;font-size:12px;letter-spacing:.14em;text-transform:uppercase;background:var(--bg);color:var(--cream);white-space:nowrap}
+button.pill{padding:7px 18px}
+button.pill:hover{background:var(--cream);color:var(--deep)}
+button.pill.solid{background:var(--cream);color:var(--deep)}
+button.pill.solid:hover{background:#fff}
+/* верхняя панель */
+.bar{position:sticky;top:0;z-index:20;display:flex;justify-content:space-between;align-items:center;gap:12px;padding:12px 18px;background:rgba(22,22,24,.92);backdrop-filter:blur(8px);border-bottom:1px solid var(--line)}
+.bar .logo{font:700 20px var(--serif);letter-spacing:.02em;background:none;border:0;display:flex;align-items:center;gap:10px;padding:0}
+.bar .logo span{font-size:18px}
+/* главная */
+.arch{width:min(620px,100%);margin:0 auto;height:clamp(300px,52vw,420px);border-radius:310px 310px 0 0;border:1px solid var(--lineS);position:relative;overflow:hidden;display:flex;align-items:flex-end;justify-content:center;
+  background:radial-gradient(ellipse at 50% 22%,rgba(240,160,60,.3),transparent 58%),repeating-conic-gradient(rgba(255,255,255,.035) 0 25%,transparent 0 50%) 0 0/36px 36px,var(--deep)}
+.arch h1{margin:0 0 26px;font:700 clamp(40px,9vw,86px)/.9 var(--serif);text-align:center;text-transform:uppercase;letter-spacing:-.01em}
+.hero-pill{display:block;width:max-content;margin:-14px auto 0;position:relative;z-index:1}
+.descbox{max-width:620px;margin:22px auto 0;border:1px solid var(--line);padding:14px 20px;text-align:center;font-size:14px;color:var(--dim)}
+.cta{display:flex;justify-content:center;margin-top:24px}
+.recent{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:14px;margin-top:22px}
+.rc{border:1px solid var(--line);padding:16px;text-align:left;background:none;display:block;width:100%}
+.rc:hover{border-color:var(--lineS)}
+.rc h4{margin:10px 0 6px;font:500 20px/1.2 var(--serif)}
+.rc p{margin:0;font-size:14px;color:var(--dim);display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}
+.sect{font:500 28px var(--serif);margin:0 0 4px;text-align:center}
+/* страница персонажа */
+.page{display:grid;grid-template-columns:64px minmax(0,1fr) 64px;gap:28px;padding:34px 22px}
+.side{border-inline:1px solid var(--line);padding:0 6px;display:flex;justify-content:center}
+.side .vt{position:sticky;top:90px;align-self:flex-start;writing-mode:vertical-rl;font:700 clamp(30px,4vw,48px)/1 var(--serif);text-transform:uppercase;letter-spacing:.02em;max-height:calc(100vh - 130px);overflow:hidden;white-space:nowrap;padding:8px 0}
+.side.l .vt{transform:rotate(180deg)}
+.chead{display:flex;gap:24px;align-items:flex-end;flex-wrap:wrap;margin-bottom:22px}
+.ava{width:112px;height:140px;border-radius:56px 56px 0 0;border:1px solid var(--lineS);background:var(--deep) center/cover;display:grid;place-items:center;font:700 44px var(--serif);flex:none}
+h2.name{margin:0;font:700 clamp(34px,6vw,64px)/.95 var(--serif);text-transform:uppercase}
+.sub{margin:10px 0 0;color:var(--dim)}
+.hb{display:flex;gap:8px;flex-wrap:wrap;margin-top:14px}
+.filters{display:flex;gap:8px;flex-wrap:wrap;margin:0 0 20px}
+.filters .pill[aria-pressed=true]{background:var(--cream);color:var(--deep)}
+.box{border:1px solid var(--line);padding:18px;margin-bottom:18px}
+.box h3{margin:0 0 12px;font:500 24px var(--serif)}
+.field{width:100%;background:transparent;border:1px solid var(--line);border-radius:0;padding:10px 12px;margin-bottom:10px;color:var(--cream)}
+.field::placeholder{color:#6f695f}
+select.field option{background:var(--deep)}
+textarea.field{min-height:130px;resize:vertical;line-height:1.55}
+.row{display:flex;gap:10px;flex-wrap:wrap}
+.row .field{flex:1;min-width:170px}
+.row select.field{flex:0 0 190px}
+.entry{border:1px solid var(--line);padding:18px;margin-bottom:16px;position:relative}
+.entry.fav{border-color:var(--lineS)}
+.entry.fav h4::before{content:"✦ ";color:var(--red)}
+.etop{display:flex;gap:12px;align-items:center;flex-wrap:wrap}
+.entry h4{margin:0;font:500 24px/1.2 var(--serif)}
+.date{margin-left:auto;font-size:13px;color:var(--dim)}
+.etext{white-space:pre-wrap;margin:12px 0 14px;overflow-wrap:anywhere;max-width:78ch}
+.eact{display:flex;gap:8px;flex-wrap:wrap}
+.eact .pill{font-size:11px}
+.empty{padding:26px;text-align:center;color:var(--dim);border:1px dashed var(--line)}
+.pn{grid-column:1/-1;display:flex;justify-content:space-between;gap:10px;margin-top:10px;padding-top:18px;border-top:1px solid var(--line)}
+/* меню */
+#menu{position:fixed;inset:0;z-index:50;background:var(--bg);overflow:auto;animation:fade .18s ease-out}
+#menu[hidden]{display:none}
+@keyframes fade{from{opacity:0}to{opacity:1}}
+.mtop{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:22px}
+.mtitle{font:700 clamp(34px,6vw,60px)/.95 var(--serif);text-transform:uppercase;margin:0}
+#mq{width:100%;max-width:520px;background:transparent;border:0;border-bottom:1px solid var(--lineS);padding:10px 2px;margin-bottom:26px;font-size:18px}
+#mq:focus-visible{outline:0;border-bottom-color:var(--cream)}
+.groups{columns:3 300px;column-gap:44px}
+.grp{break-inside:avoid;margin-bottom:30px}
+.nm{display:flex;justify-content:space-between;align-items:center;gap:10px;width:100%;text-align:left;background:none;border:0;border-bottom:1px solid var(--line);padding:9px 2px;font:500 22px/1.2 var(--serif)}
+.grp .pill{margin-bottom:8px}
+.nm:hover{border-bottom-color:var(--cream)}
+.nm:hover span::before{content:"✦ "}
+.nm[aria-current=true] span::before{content:"✦ ";color:var(--red)}
+.nm em{font:600 12px var(--sans);font-style:normal;border:1px solid var(--lineS);border-radius:99px;padding:1px 9px}
+.mfoot{display:flex;gap:10px;flex-wrap:wrap;margin-top:6px}
+dialog{background:var(--bg);color:var(--cream);border:1px solid var(--lineS);padding:24px;width:min(440px,92vw)}
+dialog::backdrop{background:rgba(0,0,0,.72)}
+dialog h3{margin:0 0 14px;font:500 26px var(--serif)}
+@media (max-width:760px){
+  .frame{margin:14px 10px;padding:22px 16px}
+  .page{grid-template-columns:1fr;padding:22px 16px}
+  .side{display:none}
+  .date{margin-left:0}
+}
+@media (prefers-reduced-motion:reduce){#menu{animation:none}html{scroll-behavior:auto}}
+</style>
+</head>
+<body>
+<header class="bar">
+  <button class="logo" id="home" aria-label="На главную"><span>✦</span>Shinri Trial</button>
+  <button class="pill solid" id="openMenu">Меню · <span id="cnt">0</span></button>
+</header>
+<main id="view"></main>
+
+<div id="menu" hidden role="dialog" aria-label="Меню персонажей">
+  <section class="frame">
+    <span class="star">✦</span>
+    <div class="mtop"><h2 class="mtitle">Персонажи</h2><button class="pill" id="closeMenu">Закрыть</button></div>
+    <input id="mq" type="search" placeholder="Найти персонажа" aria-label="Найти персонажа">
+    <div class="groups" id="groups"></div>
+    <div class="mfoot">
+      <button class="pill solid" id="addChar">Добавить персонажа</button>
+      <button class="pill" id="exp">Скачать копию</button>
+      <button class="pill" id="imp">Загрузить копию</button>
+      <input type="file" id="file" accept="application/json" hidden>
+    </div>
+  </section>
+</div>
+
+<dialog id="dlg">
+  <h3 id="dlgTitle">Новый персонаж</h3>
+  <input class="field" id="dName" placeholder="Имя (например, Кокичи Ома)">
+  <input class="field" id="dSub" placeholder="Подпись (роль, скин) — по желанию">
+  <input class="field" id="dImg" placeholder="Картинка: ссылка или img/koki.jpg — по желанию">
+  <div class="row" style="justify-content:flex-end;margin-top:6px">
+    <button class="pill" id="dCancel">Отмена</button>
+    <button class="pill solid" id="dSave">Сохранить</button>
+  </div>
+</dialog>
+
+<script>
+/* ===== Полный список в меню. Правь имена здесь или добавляй персонажей кнопкой на сайте. ===== */
+const ROSTER = {
+  "Trigger Happy Havoc": ["Макото Наэги","Кёко Киригири","Бякуя Тогами","Тока Фукава","Леон Курата","Мондо Оваду","Киётака Исимару","Хифуми Ямада","Ясухиро Хагакурэ","Саяка Майзоно","Аой Асахина","Сакура Огами","Селестия Люденберг","Тихиро Фудзисаки","Мукуро Икусаба","Дзюнко Эношима"],
+  "Goodbye Despair": ["Хаджиме Хината","Нагито Комаэда","Тиаки Нанами","Фуюко Кузурю","Пеко Пекояма","Казуичи Сода","Акане Овари","Гундам Танака","Соня Невермайнд","Махиру Койдзуми","Хиёко Сайонджи","Ибуки Миода","Микан Цумики","Тэрутэру Ханамура","Некомару Нидай"],
+  "New Danganronpa V3": ["Сюити Сайхара","Каэдэ Акамацу","Кокичи Ома","Маки Харукава","Кайто Момота","Химико Юмэно","Цумуги Сирогане","Кируми Тоджо","Корэкиё Синдзи","Энджи Ёнага","Тэнко Чабашира","Мию Ирума","Гонта Гокухара","Рёма Хоси","Рантаро Амами","Киибо"]
+};
+const OWN = "Свои";
+const TAGS = ["Основа","Реплики","Сцена","Союзы и враги","Идея","Разное"];
+const KEY = "shinri-notes-v1";
+const uid = () => Math.random().toString(36).slice(2,10);
+const esc = s => String(s).replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const $ = id => document.getElementById(id);
+
+let state, cur = null, tagFilter = "Все", editing = null, editChar = null;
+
+function save(){ try{ localStorage.setItem(KEY, JSON.stringify(state)); }catch(e){ alert("Не удалось сохранить в браузере. Скачай копию вручную."); } }
+function normalize(){
+  if(!state || !Array.isArray(state.chars)) state = {chars:[]};
+  if(state.seedV !== 2){
+    const have = new Map(state.chars.map(c => [c.name.toLowerCase(), c]));
+    for(const [g, arr] of Object.entries(ROSTER)) for(const n of arr){
+      const ex = have.get(n.toLowerCase());
+      if(ex){ if(!ex.group) ex.group = g; }
+      else{ const c = {id:uid(), name:n, sub:"", group:g, img:"", entries:[]}; state.chars.push(c); have.set(n.toLowerCase(), c); }
+    }
+    state.seedV = 2; save();
+  }
+}
+function load(){ try{ state = JSON.parse(localStorage.getItem(KEY)); }catch(e){ state = null; } normalize(); }
+const ch = () => state.chars.find(c => c.id === cur);
+function groups(){
+  const keys = [...Object.keys(ROSTER), OWN];
+  return keys.map(g => [g, state.chars.filter(c => (keys.includes(c.group) ? c.group : OWN) === g)]).filter(([,a]) => a.length);
+}
+const flat = () => groups().flatMap(([,a]) => a);
+
+/* ===== меню ===== */
+function renderMenu(){
+  const q = $("mq").value.trim().toLowerCase();
+  $("groups").innerHTML = groups().map(([g, arr]) => {
+    const l = arr.filter(c => c.name.toLowerCase().includes(q)); if(!l.length) return "";
+    return `<div class="grp"><span class="pill">${esc(g)}</span>${l.map(c =>
+      `<button class="nm" data-id="${c.id}"${c.id===cur?' aria-current="true"':""}><span>${esc(c.name)}</span>${c.entries.length?`<em>${c.entries.length}</em>`:""}</button>`).join("")}</div>`;
+  }).join("") || '<p class="dim">Никого не найдено.</p>';
+  $("cnt").textContent = state.chars.length;
+}
+function openMenu(){ $("menu").hidden = false; document.body.style.overflow = "hidden"; renderMenu(); $("mq").focus(); }
+function closeMenu(){ $("menu").hidden = true; document.body.style.overflow = ""; }
+function go(id){ cur = id; tagFilter = "Все"; editing = null; closeMenu(); render(); window.scrollTo(0,0); }
+
+/* ===== главная ===== */
+function renderHome(){
+  const all = state.chars.flatMap(c => c.entries.map(e => ({c, e}))).sort((a,b) => b.e.ts - a.e.ts).slice(0,4);
+  $("view").innerHTML = `
+  <section class="frame"><span class="star">✦</span>
+    <div class="arch"><h1>Блокнот<br>отыгрыша</h1></div>
+    <span class="pill hero-pill">Shinri Trial</span>
+    <p class="descbox">Личный блокнот для Shinri Trial. Под каждого персонажа свои варианты игры, реплики, сцены и связки. Выбери героя в меню.</p>
+    <div class="cta"><button class="pill solid" data-a="menu">Открыть меню персонажей</button></div>
+  </section>
+  <section class="frame"><span class="star">✦</span>
+    <h2 class="sect">Последние записи</h2>
+    ${all.length ? `<div class="recent">${all.map(({c,e}) => `<button class="rc" data-id="${c.id}"><span class="pill">${esc(c.name)}</span><h4>${esc(e.title||"Без названия")}</h4><p>${esc(e.text)}</p></button>`).join("")}</div>`
+      : '<div class="empty" style="margin-top:18px">Записей пока нет. Открой меню, выбери персонажа и запиши первый вариант.</div>'}
+  </section>`;
+}
+
+/* ===== страница персонажа ===== */
+function avaHTML(c){
+  return `<div class="ava"${c.img?` style="background-image:url('${esc(c.img)}')"`:""}>${c.img?"":esc((c.name.trim()[0]||"?"))}</div>`;
+}
+function entryHTML(e){
+  if(editing === e.id){
+    return `<div class="entry"><div class="row"><input class="field" id="eT" value="${esc(e.title)}" placeholder="Название варианта">
+      <select class="field" id="eG">${TAGS.map(t=>`<option${t===e.tag?" selected":""}>${t}</option>`).join("")}</select></div>
+      <textarea class="field" id="eX">${esc(e.text)}</textarea>
+      <div class="eact"><button class="pill solid" data-a="saveE" data-id="${e.id}">Сохранить</button><button class="pill" data-a="cancelE">Отмена</button></div></div>`;
+  }
+  return `<article class="entry${e.fav?" fav":""}"><div class="etop"><h4>${esc(e.title||"Без названия")}</h4><span class="pill">${esc(e.tag)}</span><span class="date">${new Date(e.ts).toLocaleDateString("ru-RU")}</span></div>
+    <div class="etext">${esc(e.text)}</div>
+    <div class="eact"><button class="pill" data-a="fav" data-id="${e.id}">${e.fav?"Убрать из любимых":"В любимые"}</button>
+    <button class="pill" data-a="edit" data-id="${e.id}">Править</button>
+    <button class="pill" data-a="copy" data-id="${e.id}">Копировать</button>
+    <button class="pill" data-a="del" data-id="${e.id}">Удалить</button></div></article>`;
+}
+function renderChar(){
+  const c = ch(), list = flat(), i = list.indexOf(c), prev = list[i-1], next = list[i+1];
+  const es = c.entries.filter(e => tagFilter==="Все" || e.tag===tagFilter).sort((a,b) => (b.fav?1:0)-(a.fav?1:0) || b.ts-a.ts);
+  $("view").innerHTML = `
+  <section class="frame page"><span class="star">✦</span>
+    <div class="side l"><div class="vt">${esc(c.name)}</div></div>
+    <div>
+      <div class="chead">${avaHTML(c)}<div><span class="pill">${esc(c.group && ROSTER[c.group] ? c.group : OWN)}</span>
+        <h2 class="name" style="margin-top:12px">${esc(c.name)}</h2>${c.sub?`<p class="sub">${esc(c.sub)}</p>`:""}
+        <div class="hb"><button class="pill" data-a="editChar">Изменить</button><button class="pill" data-a="delChar">Удалить персонажа</button></div></div></div>
+      <div class="filters">${["Все",...TAGS].map(t=>`<button class="pill" data-tag="${t}" aria-pressed="${t===tagFilter}">${t}</button>`).join("")}</div>
+      <div class="box"><h3>Новый вариант отыгрыша</h3>
+        <div class="row"><input class="field" id="nT" placeholder="Название, например «Первый день суда»">
+        <select class="field" id="nG" aria-label="Раздел">${TAGS.map(t=>`<option>${t}</option>`).join("")}</select></div>
+        <textarea class="field" id="nX" placeholder="Как ты играешь этого персонажа: поведение, реплики, тактика, связки с другими"></textarea>
+        <button class="pill solid" data-a="add">Записать вариант</button></div>
+      ${es.length ? es.map(entryHTML).join("") : '<div class="empty">Здесь пока пусто. Запиши первый вариант выше.</div>'}
+    </div>
+    <div class="side r"><div class="vt">${esc(c.name)}</div></div>
+    <nav class="pn">${prev?`<button class="pill" data-id="${prev.id}">‹ ${esc(prev.name)}</button>`:"<span></span>"}${next?`<button class="pill" data-id="${next.id}">${esc(next.name)} ›</button>`:"<span></span>"}</nav>
+  </section>`;
+}
+function render(){ $("cnt").textContent = state.chars.length; if(cur && ch()) renderChar(); else { cur = null; renderHome(); } }
+
+/* ===== события ===== */
+$("home").onclick = () => { cur = null; closeMenu(); render(); window.scrollTo(0,0); };
+$("openMenu").onclick = openMenu;
+$("closeMenu").onclick = closeMenu;
+$("mq").addEventListener("input", renderMenu);
+document.addEventListener("keydown", e => { if(e.key==="Escape" && !$("menu").hidden) closeMenu(); });
+$("groups").addEventListener("click", e => { const b = e.target.closest(".nm"); if(b) go(b.dataset.id); });
+$("view").addEventListener("click", async e => {
+  const t = e.target.closest("[data-tag]");
+  if(t){ tagFilter = t.dataset.tag; renderChar(); return; }
+  const b = e.target.closest("[data-a],[data-id]"); if(!b) return;
+  const a = b.dataset.a;
+  if(!a){ go(b.dataset.id); return; }
+  if(a==="menu"){ openMenu(); return; }
+  const c = ch(), en = c && c.entries.find(x => x.id === b.dataset.id);
+  if(a==="add"){
+    const text = $("nX").value.trim(), title = $("nT").value.trim();
+    if(!text && !title){ $("nX").focus(); return; }
+    c.entries.push({id:uid(), title, tag:$("nG").value, text, fav:false, ts:Date.now()}); save(); render();
+  }else if(a==="fav"){ en.fav = !en.fav; save(); renderChar(); }
+  else if(a==="edit"){ editing = en.id; renderChar(); }
+  else if(a==="cancelE"){ editing = null; renderChar(); }
+  else if(a==="saveE"){ en.title=$("eT").value.trim(); en.tag=$("eG").value; en.text=$("eX").value.trim(); editing=null; save(); renderChar(); }
+  else if(a==="copy"){ try{ await navigator.clipboard.writeText((en.title?en.title+"\n\n":"")+en.text); b.textContent="Скопировано"; }catch(_){ b.textContent="Не вышло"; } }
+  else if(a==="del"){ if(confirm("Удалить этот вариант?")){ c.entries = c.entries.filter(x => x!==en); save(); render(); } }
+  else if(a==="editChar"){ openDlg(c); }
+  else if(a==="delChar"){ if(confirm(`Удалить «${c.name}» вместе со всеми записями?`)){ state.chars = state.chars.filter(x => x!==c); cur = null; save(); render(); } }
+});
+
+/* диалог персонажа */
+function openDlg(c){
+  editChar = c || null;
+  $("dlgTitle").textContent = c ? "Изменить персонажа" : "Новый персонаж";
+  $("dName").value = c?.name || ""; $("dSub").value = c?.sub || ""; $("dImg").value = c?.img || "";
+  $("dlg").showModal(); $("dName").focus();
+}
+$("addChar").onclick = () => { closeMenu(); openDlg(null); };
+$("dCancel").onclick = () => $("dlg").close();
+$("dSave").onclick = () => {
+  const name = $("dName").value.trim(); if(!name){ $("dName").focus(); return; }
+  const v = {name, sub:$("dSub").value.trim(), img:$("dImg").value.trim()};
+  if(editChar) Object.assign(editChar, v);
+  else{ const c = {id:uid(), group:OWN, entries:[], ...v}; state.chars.push(c); cur = c.id; }
+  save(); $("dlg").close(); render();
+};
+
+/* резервная копия */
+$("exp").onclick = () => {
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(new Blob([JSON.stringify(state,null,2)], {type:"application/json"}));
+  a.download = "shinri-trial-notes.json"; a.click(); URL.revokeObjectURL(a.href);
+};
+$("imp").onclick = () => $("file").click();
+$("file").onchange = async e => {
+  const f = e.target.files[0]; if(!f) return;
+  try{
+    const d = JSON.parse(await f.text());
+    if(!Array.isArray(d.chars)) throw 0;
+    if(!confirm("Заменить текущие записи загруженной копией?")) return;
+    state = d; cur = null; normalize(); save(); closeMenu(); render();
+  }catch(_){ alert("Это не похоже на копию блокнота."); }
+  e.target.value = "";
+};
+
+load(); render();
+</script>
+</body>
+</html>
